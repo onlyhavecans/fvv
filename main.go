@@ -26,18 +26,18 @@ https://golang.org/pkg/text/template/#hdr-Nested_template_definitions`
 )
 
 func main() {
-	if err := run(os.Args, os.Stdout); err != nil {
+	if err := run(os.Args, templateGlob, os.Stdout); err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(exitFail)
 	}
 }
 
-func run(args []string, stdout io.Writer) error {
+func run(args []string, fileGlob string, stdout io.Writer) error {
 	if len(args) < 2 {
 		return errors.New(usage)
 	}
 
-	tmpl, err := template.ParseGlob(templateGlob)
+	tmpl, err := template.ParseGlob(fileGlob)
 	if err != nil {
 		return fmt.Errorf("checking for templates: %v", err)
 	}
