@@ -1,37 +1,51 @@
-/*
-Copyright © 2020 Amelia Aronsohn <squirrel@wearing.black>
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-
-1. Redistributions of source code must retain the above copyright notice,
-   this list of conditions and the following disclaimer.
-
-2. Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
-
-3. Neither the name of the copyright holder nor the names of its contributors
-   may be used to endorse or promote products derived from this software
-   without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-POSSIBILITY OF SUCH DAMAGE.
-*/
 package main
 
-import "onlyhavecans.works/amy/fvv/cmd"
+import (
+	"errors"
+	"fmt"
+	"io"
+	"os"
+	"text/template"
+)
+
+const (
+	templateGlob = "*.tmpl"
+	exitFail     = 1
+	usage        = `Quick Usage: fvv <template definition name>
+
+Fusozay Var Var is a CLI application for quickly rendering out text templates.
+I often write outfit and character descriptions that reuses a lot of elements.
+This allows me to DRY up my descriptions and still quickly get results.
+
+Template requirements:
+- All of the templates must be valid golang templates.
+- They must not require any variables to be passed in.
+- All templates must have the '.tmpl' extension. All other files ignored.
+- The template you want to render must be "named"
+https://golang.org/pkg/text/template/#hdr-Nested_template_definitions`
+)
 
 func main() {
-	cmd.Execute()
+	if err := run(os.Args, os.Stdout); err != nil {
+		_, _ = fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(exitFail)
+	}
+}
+
+func run(args []string, stdout io.Writer) error {
+	if len(args) < 2 {
+		return errors.New(usage)
+	}
+
+	tmpl, err := template.ParseGlob(templateGlob)
+	if err != nil {
+		return fmt.Errorf("checking for templates: %v", err)
+	}
+
+	err = tmpl.ExecuteTemplate(stdout, args[1], "no data needed")
+	if err != nil {
+		return fmt.Errorf("executing template %s: %v", args[1], err)
+	}
+
+	return nil
 }
