@@ -22,7 +22,10 @@ Template requirements:
 - They must not require any variables to be passed in.
 - All templates must have the '.tmpl' extension. All other files ignored.
 - The template you want to render must be "named"
-https://golang.org/pkg/text/template/#hdr-Nested_template_definitions`
+https://golang.org/pkg/text/template/#hdr-Nested_template_definitions
+
+Version 1.0.0
+`
 )
 
 func main() {
