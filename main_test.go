@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func Test_run(t *testing.T) {
+func TestRun(t *testing.T) {
 	type args struct {
 		args     []string
 		fileGlob string
@@ -20,6 +20,8 @@ func Test_run(t *testing.T) {
 		{"missing template", args{[]string{"fvv", "t3"}, "*.tmpl"}, "", true},
 		{"definition does not exist", args{[]string{"fvv", "t20"}, "test_files/*.tmpl"}, "", true},
 		{"happy path", args{[]string{"fvv", "T3"}, "test_files/*.tmpl"}, "ONE\nStandard stuff\nTWO", false},
+		{"flag template", args{[]string{"fvv", "-t", "test_files/*.tmpl", "T3"}, "*.tmpl"}, "ONE\nStandard stuff\nTWO", false},
+		{"bad flag", args{[]string{"fvv", "-z", "test_files/*.tmpl"}, ""}, "", true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
