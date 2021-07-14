@@ -2,13 +2,19 @@ package main
 
 import (
 	"bytes"
+	"fmt"
+	"os"
 	"testing"
+)
+
+var (
+	testFiles = "test_files"
 )
 
 func TestRun(t *testing.T) {
 	type args struct {
-		args     []string
-		fileGlob string
+		args  []string
+		stdin string
 	}
 	var tests = []struct {
 		name       string
@@ -16,17 +22,21 @@ func TestRun(t *testing.T) {
 		wantStdout string
 		wantErr    bool
 	}{
-		{"no args", args{[]string{"fvv"}, ""}, "", true},
-		{"missing template", args{[]string{"fvv", "t3"}, "*.tmpl"}, "", true},
-		{"definition does not exist", args{[]string{"fvv", "t20"}, "test_files/*.tmpl"}, "", true},
-		{"happy path", args{[]string{"fvv", "T3"}, "test_files/*.tmpl"}, "ONE\nStandard stuff\nTWO", false},
-		{"flag template", args{[]string{"fvv", "-t", "test_files/*.tmpl", "T3"}, "*.tmpl"}, "ONE\nStandard stuff\nTWO", false},
-		{"bad flag", args{[]string{"fvv", "-z", "test_files/*.tmpl"}, ""}, "", true},
+		{"no args no stdin", args{[]string{"fvv"}, "empty"}, "", true},
+		{"invalid template", args{[]string{"fvv"}, "bad.txt.tmpl"}, "", true},
+		{"bad flag", args{[]string{"fvv", "-z"}, "empty"}, "", true},
+		{"happy path", args{[]string{"fvv"}, "first.txt.tmpl"}, "ONE\nStandard stuff\nTWO\n", false},
+		{"multi path", args{[]string{"fvv"}, "many.txt.tmpl"}, "## Middle One\ntop\nmiddle_one\n\n## Middle Two\ntop\nmiddle_two\n", false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			stdout := &bytes.Buffer{}
-			err := run(tt.args.args, tt.args.fileGlob, stdout)
+			stdin, err := os.Open(fmt.Sprintf("%s/%s", testFiles, tt.args.stdin))
+			if err != nil {
+				t.Errorf("Failed opening test file %s: %v", tt.args.stdin, err)
+			}
+
+			err = run(tt.args.args, stdin, stdout)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("run() error = %v, wantErr %v", err, tt.wantErr)
 				return
